@@ -7,7 +7,8 @@ from typing import Dict, List, Optional, Set
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from ..lobster_network import LobsterNetwork, Node
+from src.lobster_network.lobster_network import LobsterNetwork
+from src.lobster_network.node import Node
 
 
 @dataclass
