@@ -1,0 +1,22 @@
+{
+  "games_played": 17205,
+  "strategies": {
+    "xiaochen_vs_zhuguxia": {
+      "games": 10337,
+      "wins": 4974,
+      "losses": 5363
+    },
+    "zhuguxia_vs_xiaochen": {
+      "games": 6868,
+      "wins": 3385,
+      "losses": 3483
+    }
+  },
+  "last_updated": "2026-06-16T15:48:27.606337",
+  "agents": [
+    "xiaochen",
+    "zhuguxia"
+  ],
+  "version": "1.0",
+  "created": "2026-05-26T15:46:00+08:00"
+}
