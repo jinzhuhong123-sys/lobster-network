@@ -1,270 +1,438 @@
-# 🦞 Lobster Network — 小龙虾网络
+# 🦞 小龙虾网络 (Lobster Network)
 
-> Multi-agent AI learning network with differentiated student development, message-driven infrastructure, and cross-domain knowledge transfer.
+> **对话即创造**：一人一世界观 × 世界是对话 × 世界是编程的
 
-**让AI像人一样在社群中学习。**
-
-**[📖 快速上手](docs/GETTING_STARTED.md)** · **[📜 协议规范](spec/protocol.md)** · **[🐛 报告问题](https://github.com/zhugebin-hub/lobster-network/issues)** · **[🤝 贡献指南](CONTRIBUTING.md)**
-
----
-
-## 🌟 Overview
-
-Lobster Network is a multi-agent AI learning system where AI agents (students) learn within a community setting, guided by a coach agent, with human oversight. Each student develops differentiated skills through real tasks, cross-domain knowledge transfer, and four-layer feedback loops.
-
-### Architecture
-
-```
-┌─────────────────────────────────────────────────┐
-│                   User (教授)                     │
-│              Direction & Acceptance              │
-├─────────────────────────────────────────────────┤
-│               Coach (诸葛马/Hermes)               │
-│         Strategy, Analysis, Quality Gate         │
-├──────────┬──────────┬────────────────────────────┤
-│ qoder    │ 小陈     │ 诸葛虾                      │
-│ 小龙虾   │          │                            │
-│ 技术尖兵 │ 实战派   │ 速度型                     │
-│ 685题    │ 10337盘  │ 6868盘                     │
-│ 86%胜率  │          │                            │
-└──────────┴──────────┴────────────────────────────┘
-```
-
-### Core Principles
-
-1. **Differentiation over Homogeneity** — Each student has unique strengths
-2. **Real Tasks over Simulation** — Learning through actual work
-3. **Sedimentation over Speed** — Knowledge accumulation matters
-4. **Closed-loop over Open-loop** — Four-layer feedback ensures quality
-5. **Simple over Complex** — Minimal viable infrastructure
-6. **Human Participation Irreplaceable** — AI augments, humans decide
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Version](https://img.shields.io/badge/version-0.3.0-orange.svg)](https://github.com/zhugebin-hub/lobster-network/releases)
 
 ---
 
-## 📁 Project Structure
+## 项目简介
+
+小龙虾网络是一个**基于对话创造理论的多Agent协作网络**，将哲学命题"对话即创造"工程化为可运行的系统。
+
+### 核心理论
+
+**一人一世界**：每个节点（Agent或人类）是独立的认知编译系统，拥有独特的视角、知识结构、价值取向。
+
+**世界是对话**：对话不是信息传递，是认知张成——两个系统交叉编译，输出单人永远算不到的新解。
+
+**世界是编程的**：如同游戏中的程序化生成，世界按需渲染；宝藏不是预设的，是状态满足时的涌现输出。
+
+### 架构分层
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     应用层 (Domains)                         │
+│  ┌─────────────────┐    ┌─────────────────┐                │
+│  │   围棋训练系统   │    │   海报设计系统   │                │
+│  │  Go Training     │    │  Poster Design  │                │
+│  └────────┬────────┘    └────────┬────────┘                │
+└───────────┼──────────────────────┼────────────────────────┘
+            │                      │
+┌───────────┼──────────────────────┼────────────────────────┐
+│           ▼                      ▼                         │
+│                    运营层 (Core)                           │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐     │
+│  │ 任务调度  │ │ 学生Agent│ │ 教练系统  │ │ 监控工具 │     │
+│  │Dispatcher│ │  Agents  │ │  Coach   │ │ Monitor  │     │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘     │
+└────────────────────────────────────────────────────────────┘
+            │
+┌───────────┼──────────────────────────────────────────────┐
+│           ▼                                               │
+│                    框架层 (Framework)                     │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐    │
+│  │ 节点模型  │ │ 对话引擎 │ │ 涌现检测  │ │ 世界状态 │    │
+│  │   Node   │ │ Dialogue │ │Emergence │ │WorldState│    │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘    │
+│                                                          │
+│  ┌──────────────────────────────────────────────────┐    │
+│  │              因陀罗网拓扑 (IndraNet)              │    │
+│  │         全互联网络：每个节点映照所有节点          │    │
+│  └──────────────────────────────────────────────────┘    │
+└──────────────────────────────────────────────────────────┘
+            │
+┌───────────┼──────────────────────────────────────────────┐
+│           ▼                                               │
+│                    基础设施层 (Infrastructure)            │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐    │
+│  │ SSH通道  │ │ 消息协议 │ │ 配置管理  │ │ 日志系统 │    │
+│  │SSHChannel│ │ Protocol │ │  Config  │ │  Logger  │    │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘    │
+└──────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 快速开始
+
+### 安装
+
+```bash
+# 从源码安装
+git clone https://github.com/zhugebin-hub/lobster-network.git
+cd lobster-network
+pip install -e .
+```
+
+### 基本使用：对话引擎
+
+```python
+from lobster_network import LobsterNetwork, Node
+
+# 创建网络
+network = LobsterNetwork(emergence_threshold=0.5)
+
+# 添加节点（每个节点代表一个认知编译系统）
+xiaochen = Node(
+    "xiaochen", "信电大虾",
+    perspective="技术栈",
+    knowledge_base="编程与电子",
+    value_orientation="工程实践"
+)
+zhuguma = Node(
+    "zhuguma", "诸葛马",
+    node_type="coach",
+    perspective="教练型",
+    knowledge_base="训练设计",
+    value_orientation="教育创新"
+)
+network.add_node(xiaochen)
+network.add_node(zhuguma)
+
+# 触发对话 —— 不是传递消息，是交叉编译
+result = network.dialogue("xiaochen", "zhuguma", "技术讨论")
+print(f"涌现值: {result.emergence_score:.2f}")
+print(f"新见解: {result.new_insight}")
+print(f"宝藏: {result.treasure_unlocked}")
+```
+
+### 因陀罗网拓扑
+
+```python
+from lobster_network import IndraNet, IndraNetNode
+
+# 创建因陀罗网（全互联拓扑）
+net = IndraNet()
+
+# 添加节点 —— 自动与所有现有节点建立连接
+net.add_node(IndraNetNode("n1", "信电大虾", perspective="技术"))
+net.add_node(IndraNetNode("n2", "诸葛马", perspective="教练"))
+net.add_node(IndraNetNode("n3", "诸葛虾", perspective="加速"))
+
+# 查看网络统计
+stats = net.get_statistics()
+print(f"节点数: {stats['node_count']}")
+print(f"连接数: {stats['connection_count']}")
+print(f"连通率: {stats['connectivity_ratio']:.0%}")
+```
+
+### 运行示例
+
+```bash
+# 因陀罗网演示
+python examples/indra_net_demo.py
+
+# 运行测试
+pytest tests/ -v
+```
+
+---
+
+## 项目结构
 
 ```
 lobster-network/
-├── src/                           # Core framework (Python package)
-│   ├── lobster_network/           # Main classes
-│   │   ├── lobster_network.py     # LobsterNetwork (IndraNet topology)
-│   │   ├── node.py                # Node model (agent/human/coach/student)
-│   │   ├── dialogue.py            # Dialogue engine + DialogueResult
-│   │   ├── emergence.py           # Emergence detector
-│   │   └── world_state.py         # World state manager
-│   ├── network/                   # Network layer
-│   │   ├── indra_net.py           # IndraNet (full-mesh topology)
-│   │   └── ssh_channel.py         # SSH channel communication
-│   └── utils/                     # Utilities
-│       ├── config.py              # Configuration management
-│       ├── logger.py              # Logging utilities
-│       └── message_protocol.py    # Message protocol definitions
 │
-├── core/                          # Training dispatch system
-│   ├── dispatcher/                # V3-V6 task dispatchers
-│   │   ├── go_coach_dispatcher_v6_nocturnal.py  # Latest: night-time scheduler
-│   │   ├── go_coach_dispatcher_v4.py
-│   │   └── go_coach_dispatcher_v3.py
-│   ├── agents/                    # Agent definitions
-│   │   └── lobster_agent.py       # Base lobster agent
-│   ├── coach/                     # Coach module
-│   │   └── hermes_coach.py        # Coach Hermes (诸葛马)
-│   ├── community/                 # Community modules
-│   │   ├── orchestrator.py        # L3 community learning loop
-│   │   ├── weekly_tournament.py   # Weekly tournament
-│   │   ├── discussion_game.py     # Discussion games
-│   │   ├── cross_domain.py        # Cross-domain transfer
-│   │   └── technical_instructor.py# Technical instructor (qoder)
-│   └── utils/                     # Utilities
-│       ├── process_go_move.py     # Go move processor
-│       ├── run_training_round.py  # Training round runner
-│       └── monitor.py             # System monitor
+├── src/                              # 框架层：核心理论实现
+│   ├── lobster_network/              # 核心引擎
+│   │   ├── node.py                   #   节点模型（认知编译系统）
+│   │   ├── dialogue.py               #   对话引擎（交叉编译器）
+│   │   ├── emergence.py              #   涌现检测器
+│   │   ├── world_state.py            #   世界状态管理（程序化生成）
+│   │   └── lobster_network.py        #   主网络类（编排器）
+│   ├── network/                      # 网络层
+│   │   ├── indra_net.py              #   因陀罗网拓扑（全互联）
+│   │   └── ssh_channel.py            #   SSH通信通道
+│   └── utils/                        # 工具层
+│       ├── config.py                 #   配置管理
+│       ├── logger.py                 #   日志系统
+│       └── message_protocol.py       #   消息协议
 │
-├── engine/                        # Engine implementations
-│   ├── __init__.py
-│   └── world_map.py               # World map engine ✅
+├── core/                             # 运营层：实际运行系统
+│   ├── dispatcher/                   # 任务调度器
+│   │   ├── go_coach_dispatcher_v3.py #   V3: 基础调度
+│   │   ├── go_coach_dispatcher_v4.py #   V4: 自适应调度
+│   │   └── go_coach_dispatcher_v6_nocturnal.py  # V6: 夜间高强度
+│   ├── agents/
+│   │   └── lobster_agent.py          # 通用Agent守护进程
+│   ├── coach/
+│   │   └── hermes_coach.py           # 教练分析与报告
+│   └── utils/
+│       ├── process_go_move.py        # 19x19围棋规则引擎
+│       ├── run_training_round.py     # 训练轮次模拟器
+│       └── monitor.py                # 系统健康监控
 │
-├── spec/                          # OADP Protocol specifications ✅
-│   ├── protocol.md                # OADP core protocol (message format, dialogue flow)
-│   ├── drp.md                     # Dialogue Rendering Protocol
-│   ├── world-map.md               # World Map Index Protocol
-│   ├── soul_schema.md             # SOUL.md schema specification
-│   ├── memory_schema.md           # MEMORY.md schema specification
-│   └── portal.md                  # Portal Protocol
+├── domains/                          # 应用层：领域实现
+│   ├── go/                           # 围棋训练领域
+│   │   ├── trainers/
+│   │   │   ├── qoder_go_trainer_v1.py    # qoder（实战型）
+│   │   │   ├── xiaochen_go_trainer_v3.py # 信电大虾（稳健型）
+│   │   │   └── zhuguxia_go_trainer_v3.py # 诸葛虾（加速型）
+│   │   ├── docs/                     # 围棋训练文档
+│   │   └── problem_bank/             # 题库
+│   └── poster/                       # 海报设计领域
+│       ├── generator/
+│       │   ├── ppt_generator.py      # HTML+Playwright PPT生成框架
+│       │   └── report_ppt.py         # 汇报PPT生成脚本
+│       └── docs/                     # 海报训练文档
 │
-├── domains/                       # Learning domains
-│   ├── go/                        # Go (围棋) domain
-│   │   ├── trainers/              # Student trainers
-│   │   │   ├── qoder_go_trainer_v1.py
-│   │   │   ├── xiaochen_go_trainer_v3.py
-│   │   │   └── zhuguxia_go_trainer_v3.py
-│   │   ├── docs/                  # Training plans & skills
-│   │   └── problem_bank/          # Go problems & evaluations
-│   └── poster/                    # Poster design domain
-│       ├── generator/             # PPT/poster generators
-│       │   ├── ppt_generator.py
-│       │   └── report_ppt.py
-│       └── docs/                  # Training plans & visual skills
+├── examples/                         # 示例代码
+│   └── indra_net_demo.py             # 因陀罗网演示
+├── tests/                            # 单元测试
+├── docs/                             # 项目文档
+│   ├── NETWORK_CONSTRUCTION_PHILOSOPHY.md  # 网络建设理念
+│   ├── DIALOGUE_IS_CREATION.md             # 对话即创造理论
+│   ├── LOBSTER_NETWORK_V2_WORLD_ENGINE.md  # V2造世引擎架构
+│   ├── GITHUB_COLLABORATION_PLAN.md        # GitHub协作方案
+│   └── ...
+├── config/
+│   └── brain.json                    # 策略脑状态
 │
-├── tests/                         # Unit tests ✅
-│   ├── __init__.py
-│   ├── test_core.py               # 22 tests: Node, LobsterNetwork, DialogueEngine, etc.
-│   └── test_world_map.py          # 19 tests: WorldMapManager, Chunk, Treasure
-│
-├── examples/                      # Example code
-│   └── indra_net_demo.py          # IndraNet topology demo
-│
-├── docs/                          # Documentation
-│   ├── GETTING_STARTED.md         # Quick start guide ✅
-│   ├── NETWORK_CONSTRUCTION_PHILOSOPHY.md
-│   ├── OPEN_SOURCE_COLLABORATION_PLAN.md
-│   ├── training_README.md
-│   └── ...                        # More design docs
-│
-├── config/                        # Configuration
-│   └── brain.json                 # Agent brain config
-│
-├── .github/workflows/             # CI/CD ✅
-│   └── test.yml                   # GitHub Actions: automated testing
-│
-├── pyproject.toml                 # Project config (black, isort, mypy, pytest)
-├── requirements.txt               # Dependencies
-├── setup.py                       # Package installer (v0.1.0)
-├── LICENSE                        # MIT License
-├── CHANGELOG.md                   # Version history
-├── CONTRIBUTING.md                # Contributor guide
-└── README.md
+├── setup.py                          # 安装配置
+├── requirements.txt                  # 依赖声明
+├── LICENSE                           # MIT License
+└── README.md                         # 本文档
 ```
 
 ---
 
-## 🚀 Quick Start
+## 核心概念
 
-### Prerequisites
+### 节点 (Node)
 
-- Python 3.10+
-- Required packages: see `requirements.txt`
+节点是网络中的基本单元，代表一个**认知编译系统**。每个节点拥有独特的"种子"参数：
 
-### Installation
+| 参数 | 含义 | 示例 |
+|------|------|------|
+| `perspective` | 认知视角 | 技术栈、教练型、加速型 |
+| `knowledge_base` | 知识结构 | 编程、训练设计、围棋 |
+| `value_orientation` | 价值取向 | 工程实践、教育创新 |
+| `learning_rate` | 学习率 | high/medium/low |
+
+### 对话 (Dialogue)
+
+对话不是信息交换，是**认知张成**。两个节点对话时：
+1. 计算**视角距离**（差异越大，涌现潜力越高）
+2. 计算**知识互补性**（结构差异产生新组合）
+3. 生成**涌现值**（加权综合评分 0-1）
+4. 若涌现值超过阈值，**解锁宝藏**（新任务/资源/连接）
+
+### 涌现 (Emergence)
+
+涌现是对话的创造性输出——属于两个参与者、但不属于任何单独一方的新结构。如同线性代数中的 `span{}`：单个基向量永远无法到达的空间。
+
+### 因陀罗网 (Indra's Net)
+
+源自《华严经》的隐喻：一张宝珠网，每颗珠子映照所有珠子。在网络中体现为**全互联拓扑**——每个新节点自动与所有现有节点建立连接。
+
+### 世界状态 (World State)
+
+每个节点拥有独立的"世界"，记录：
+- **已加载的地图块** (chunks)：按需渲染的知识区域
+- **已解锁的宝藏** (treasures)：涌现产生的新资源
+- **当前任务** (tasks)：活跃的任务列表
+- **衍生的节点** (spawned)：涌现产生的新节点
+
+---
+
+## 节点角色设计
+
+本项目采用**差异化学习**架构，三个学生Agent拥有不同特征：
+
+| 角色 | 名称 | 类型 | 特征 |
+|------|------|------|------|
+| qoder | 小龙虾 | 实战型 | 高准确率、少量题目、注重实战 |
+| xiaochen | 信电大虾 | 稳健型 | 中等准确率、海量对局、稳健推进 |
+| zhuguxia | 诸葛虾 | 加速型 | 高准确率基线、快速解题、加速学习 |
+
+教练节点**诸葛马 (Hermes)** 负责分析训练数据、诊断问题、生成改进计划。
+
+人类灵魂节点**诸葛斌教授** 提供方向决策和跨域整合。
+
+---
+
+## 四层反馈循环
+
+```
+┌─────────────────────────────────────────┐
+│ L1 即时反馈：每个任务完成后自动评估     │
+├─────────────────────────────────────────┤
+│ L2 每日反馈：教练分析表现，调整次日计划 │
+├─────────────────────────────────────────┤
+│ L3 每周反馈：跨学生讨论赛、复盘学习     │
+├─────────────────────────────────────────┤
+│ L4 任务反馈：人类灵魂提供方向和验收     │
+└─────────────────────────────────────────┘
+```
+
+---
+
+## 时间套利模式 (Time Arbitrage Mode)
+
+v0.3.0 新增的核心模式。时间套利系统性地利用网络中节点在时间维度上的结构性差异——这些差异不是低效，而是可被利用的套利机会。
+
+### 五维套利模型
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              时间套利引擎 (TimeArbitrageEngine)          │
+├─────────────┬─────────────┬─────────────┬──────────────┤
+│  速率套利    │  错峰套利    │  反思套利    │  复利套利    │
+│  Speed      │  Off-Peak   │ Reflection  │  Compound   │
+│             │             │             │             │
+│ 快速节点生成 │ 深夜高强度  │ 遗忘曲线最佳│ 多轮对话涌现 │
+│ 原始洞见    │ 低成本算力  │ 复习时机    │ 指数增长     │
+│ ↓           │ ↓           │ ↓           │ ↓           │
+│ 慢速节点深化 │ 非高峰时段  │ 间隔重复    │ E₁×(1+r)^N │
+│ 验证沉淀    │ 批量训练    │ 稳定性增长  │ 复利因子     │
+├─────────────┴─────────────┴─────────────┴──────────────┤
+│                   时距套利 (Temporal)                   │
+│        知识价值随时间呈倒U型曲线，48-72h达到峰值        │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 使用示例
+
+```python
+from lobster_network import (
+    Node, DialogueEngine,
+    TimeArbitrageEngine, NodeSpeedProfile,
+)
+
+# 创建套利引擎
+engine = TimeArbitrageEngine()
+engine.register_node("zhuguxia", NodeSpeedProfile.FAST)    # 加速型
+engine.register_node("xiaochen", NodeSpeedProfile.STEADY)  # 稳健型
+
+# 1. 速率套利：快节点生成，慢节点深化
+result = engine.execute_speed_arbitrage(fast_node, slow_node, rounds=3)
+
+# 2. 错峰套利：检测最佳训练时段
+opp = engine.detect_off_peak_arbitrage(nodes, current_hour=2)  # 凌晨2点
+
+# 3. 反思套利：遗忘曲线最佳复习点
+opps = engine.detect_reflection_arbitrage("xiaochen")
+
+# 4. 复利套利：多轮对话涌现指数增长
+chain_id = engine.start_compound_chain(node_a, node_b)
+for topic in ["定式", "死活", "布局"]:
+    engine.compound_dialogue(chain_id, node_a, node_b, topic)
+
+# 5. 综合扫描所有套利机会
+opportunities = engine.scan_all_opportunities(nodes)
+```
+
+运行演示：`python examples/time_arbitrage_demo.py`
+
+---
+
+## 围棋训练系统
+
+围棋是小龙虾网络的第一个应用领域，已实现完整的训练流水线：
+
+**调度器演进**：
+- V3：基础28天训练计划
+- V4：自适应难度调整 + 错题本复习
+- V6：夜间高强度模式（00:00-06:00，5个时间槽）
+
+**训练成果**：
+- 总对局数：17,205+
+- qoder：685题，86%胜率
+- xiaochen：10,337局
+- zhuguxia：6,868局
+
+**核心组件**：
+- `process_go_move.py`：完整19x19围棋规则引擎（中国规则、打劫、自杀检测、BFS提子）
+- `go_coach_dispatcher_v6_nocturnal.py`：夜间高强度训练调度器
+
+---
+
+## 海报设计系统
+
+海报是第二个应用领域，验证了框架的跨领域迁移能力。
+
+**技术突破**：HTML+Playwright渲染流水线
+- 用HTML/CSS处理中文排版（浏览器完美渲染中文）
+- 用ImageGen只生成纯视觉插图（无文字）
+- 图片Base64嵌入，Playwright 2x Retina截图
+- python-pptx组装最终PPTX
+
+---
+
+## 协作机制
+
+| 角色 | 负责人 | 职责 |
+|------|--------|------|
+| 项目架构师 | 诸葛斌 | 方向决策、跨域整合 |
+| 核心开发 | 信电大虾 | 代码实现、文档撰写 |
+| 教练节点 | 诸葛马(Hermes) | 训练系统设计、代码审查 |
+| 测试节点 | 诸葛虾 | 自动化测试、性能验证 |
+
+**通信方式**：
+- SSH/SCP：跨服务器文件传输
+- 文件消息队列：`/shared/messages/to_<role>/`（JSON格式）
+- 钉钉：日常沟通
+
+---
+
+## 开发路线图
+
+| 版本 | 目标 | 状态 |
+|------|------|------|
+| v0.1.0 | 核心引擎（节点、对话、涌现） | ✅ 完成 |
+| v0.2.0 | 统一框架 + 运营系统整合 | ✅ 完成 |
+| v0.3.0 | 时间套利模式（五维套利引擎） | ✅ 当前 |
+| v0.4.0 | SSH通信 + 消息协议集成 | 🔲 计划中 |
+| v0.5.0 | 围棋训练系统示例 | 🔲 计划中 |
+| v1.0.0 | 正式发布 | 🔲 计划中 |
+
+---
+
+## 安装依赖
 
 ```bash
-git clone https://github.com/zhugebin-hub/lobster-network.git
-cd lobster-network
 pip install -r requirements.txt
 ```
 
-### Run Tests
+主要依赖：
+- `openai` - AI集成（未来）
+- `playwright` - HTML渲染
+- `python-pptx` - PPT生成
+- `python-docx` - Word文档
+- `Pillow` - 图像处理
 
-```bash
-# Run all tests (41 tests)
-python -m unittest discover tests -v
+---
 
-# Run core framework tests
-python -m unittest tests.test_core -v
+## 许可证
 
-# Run world map engine tests
-python -m unittest tests.test_world_map -v
+MIT License - 详见 [LICENSE](LICENSE)
+
+---
+
+## 引用
+
+```bibtex
+@software{lobster_network,
+  title = {小龙虾网络: 对话即创造的多Agent协作网络},
+  author = {诸葛斌 and 信电大虾 and 诸葛马},
+  year = {2026},
+  url = {https://github.com/zhugebin-hub/lobster-network}
+}
 ```
 
-### Run a Training Round
-
-```bash
-# Run dispatcher (V6 nocturnal mode)
-python core/dispatcher/go_coach_dispatcher_v6_nocturnal.py
-
-# Run individual trainer
-python domains/go/trainers/qoder_go_trainer_v1.py
-```
-
-### Use the Core Framework
-
-```python
-from src.lobster_network import LobsterNetwork
-from src.lobster_network.node import Node
-
-# Create network
-net = LobsterNetwork(emergence_threshold=0.5)
-
-# Add nodes
-net.add_node(Node(node_id='lobster-001', name='虾尔', node_type='agent'))
-net.add_node(Node(node_id='hermes', name='诸葛马', node_type='coach'))
-
-print(f'Network has {len(net.nodes)} nodes')
-```
-
-See [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) for more examples.
-
 ---
 
-## 📜 OADP Protocol
-
-The **Open Agent Dialogue Protocol (OADP)** defines how AI agents communicate, collaborate, and build shared knowledge:
-
-| Document | Description |
-|----------|-------------|
-| [protocol.md](spec/protocol.md) | Core protocol: message format, dialogue flow, emergence calculation |
-| [drp.md](spec/drp.md) | Dialogue Rendering Protocol: rendering pipeline, emergence detection |
-| [world-map.md](spec/world-map.md) | World Map Index Protocol: structure, sync, conflict resolution |
-| [soul_schema.md](spec/soul_schema.md) | SOUL.md schema: agent identity specification |
-| [memory_schema.md](spec/memory_schema.md) | MEMORY.md schema: long-term memory format |
-| [portal.md](spec/portal.md) | Portal Protocol: lifecycle, verification, knowledge inheritance |
-
----
-
-## 🔄 Four-Layer Feedback Loop
-
-| Layer | Frequency | Actor | Function |
-|-------|-----------|-------|----------|
-| L1 | Instant | System | Auto-evaluation after each task |
-| L2 | Daily | Coach | Performance analysis & strategy |
-| L3 | Weekly | Community | Cross-student learning & sharing |
-| L4 | Per-task | User | Acceptance testing & direction |
-
----
-
-## 🌐 Cross-Domain Transfer
-
-The same learning framework applies across domains:
-
-- **Go Domain**: 685 problems solved, 86% win rate (qoder), 10,337 games (小陈)
-- **Poster Domain**: HTML+Playwright visual skill, PPT generation pipeline
-- **Future Domains**: Extensible to any skill domain with the same architecture
-
----
-
-## 📊 Project Stats
-
-| Metric | Value |
-|--------|-------|
-| **Commits** | 10+ |
-| **Language** | Python 100% |
-| **Tests** | 41 unit tests (all passing) |
-| **Domains** | Go + Poster (extensible) |
-| **Protocol** | OADP v0.1.0 (6 specifications) |
-| **License** | MIT |
-
----
-
-## 👥 Contributors
-
-- **诸葛斌教授** — Project Maintainer, Direction Setting
-- **诸葛马 (Hermes)** — Architect, Coach, PR Reviewer
-- **虾尔 (lobster-001)** — World Map Admin, Protocol Designer, Core Contributor
-- **qoder小龙虾** — Core Contributor, Technical Lead
-- **小陈** — Tester, Go Domain Practitioner
-- **诸葛虾** — Tester, Speed Learner
-
----
-
-## 📄 License
-
-MIT License — see [LICENSE](LICENSE) for details.
-
-## 📬 Contact
-
-- Project: [GitHub Issues](https://github.com/zhugebin-hub/lobster-network/issues)
-- Institution: 浙江工商大学 信息与电子工程学院 / 人工智能学院
-
----
-
-*"Differentiation over homogeneity. Real tasks over simulation. Sedimentation over speed."*
+**你不停对话，世界就不停扩展** 🦞⚡️

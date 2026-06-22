@@ -1,34 +1,49 @@
 # 更新日志
 
-## [0.1.1] - 2026-06-22
+## [0.3.0] - 2026-06-22
+
+### 重大新增：时间套利模式 (Time Arbitrage Mode)
+
+引入**五维时间套利引擎**，系统性利用网络中节点的时间差异：
+
+1. **速率套利 (Speed Arbitrage)** —— 利用不同Agent的学习速度差，快速节点生成原始洞见，慢速节点深化验证
+2. **错峰套利 (Off-Peak Arbitrage)** —— 利用非高峰时段（深夜00:00-06:00）的低成本算力执行高强度训练
+3. **反思套利 (Reflection Arbitrage)** —— 基于艾宾浩斯遗忘曲线，在记忆保留率降至最佳点时触发复习（V4错题本每3天机制的理论升级）
+4. **复利套利 (Compound Arbitrage)** —— 多轮对话的涌现呈指数增长：E_total = E_1 × (1+r)^(N-1)
+5. **时距套利 (Temporal Distance Arbitrage)** —— 知识价值随时间呈倒U型曲线，48-72小时后达到峰值
+
+### 新增文件
+- `src/lobster_network/time_arbitrage.py` — 时间套利引擎核心模块
+- `examples/time_arbitrage_demo.py` — 五维套利完整演示
+
+### 架构改进
+- 网络层和工具层移入 `src/lobster_network/` 包内，统一Python包结构
+- `__init__.py` 统一导出套利层所有类
+- 版本升级到 v0.3.0
+
+---
+
+## [0.2.0] - 2026-06-22
+
+### 重大更新：项目融合
+- **框架层**与**运营层**统一整合为单一项目
+- 重新设计四层架构：框架层 → 运营层 → 应用层 → 基础设施层
+- 统一 `__init__.py` 入口，导出所有核心类
+- 更新 `setup.py` 支持分层安装（core/full/dev）
 
 ### 新增
-- **engine/world_map.py** — 世界地图引擎（WorldMapManager）
-  - Chunk 知识碎片管理（增删改查、搜索、权限控制）
-  - Treasure 宝藏管理（解锁、验证、稀有度系统）
-  - 全量/增量同步机制
-  - 冲突解决（最后写入者胜出）
-  - 持久化存储支持
-- **spec/** — OADP 协议层 6 个核心规范文档
-  - protocol.md — OADP 核心协议（消息格式、对话流程、涌现计算、错误处理）
-  - drp.md — 对话渲染协议（渲染流程、涌现检测算法、稀有度系统）
-  - world-map.md — 世界地图索引协议（结构、同步机制、冲突解决）
-  - soul_schema.md — SOUL.md 灵魂种子格式规范（含 JSON Schema）
-  - memory_schema.md — MEMORY.md 记忆格式规范
-  - portal.md — 传送门协议（生命周期、验证流程、知识传承链）
-- **docs/GETTING_STARTED.md** — 快速上手指南（含核心模块示例代码）
-- **pyproject.toml** — 项目配置（black + isort + mypy + pytest）
-- **.github/workflows/test.yml** — GitHub Actions CI/CD（Python 3.10/3.11/3.12）
-- **examples/indra_net_demo.py** — 因陀罗网拓扑示例代码
+- `src/lobster_network/` — 核心框架（节点、对话、涌现、世界状态）
+- `src/network/` — 因陀罗网拓扑、SSH通道
+- `src/utils/` — 配置、日志、消息协议
+- `core/` — 运营系统（调度器、Agent、教练、工具）
+- `domains/go/` — 围棋训练领域（3个学生训练器、题库、文档）
+- `domains/poster/` — 海报设计领域（PPT生成框架）
+- `examples/indra_net_demo.py` — 因陀罗网演示
+- 统一 README（中英双语，含架构图）
 
-### 修复
-- **src/network/indra_net.py** — 修复相对导入错误（改为绝对导入）
-- **requirements.txt** — 完善依赖列表，明确版本号
-
-### 测试
-- 新增 22 个核心单元测试（test_core.py）
-- 新增 19 个世界地图引擎测试（test_world_map.py）
-- **总计 41 个测试全部通过** ✅
+### 改进
+- 版本升级到 v0.2.0
+- 项目结构更清晰，按功能分层组织
 
 ---
 
