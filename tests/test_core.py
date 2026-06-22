@@ -70,7 +70,9 @@ class TestCoachHermes(unittest.TestCase):
 
         self.assertGreater(len(issues), 0)
         for issue in issues:
-            self.assertIn("🔴", issue) or self.assertIn("🟡", issue)
+            has_red = "🔴" in issue
+            has_yellow = "🟡" in issue
+            self.assertTrue(has_red or has_yellow, f"Issue missing severity emoji: {issue}")
 
     def test_training_plan_structure(self):
         """测试训练计划结构"""

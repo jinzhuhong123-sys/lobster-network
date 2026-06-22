@@ -297,7 +297,7 @@ class WorldMapManager:
 
     def __init__(self, world_map: WorldMap):
         self.world_map = world_map
-        self._lock_file = Path("/shared/world_map/.lock")
+        self._lock_file = Path(world_map.storage_dir) / ".lock"
 
     def _acquire_lock(self, agent: str, timeout: int = 10) -> bool:
         """获取写锁（基于文件的简单锁）"""
