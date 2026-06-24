@@ -3,6 +3,11 @@
 Lobster Network - Unified Entry Point
 
 对话即创造：一人一世界的世界观
+
+v0.4.0 变更:
+- 新增: 节点注册中心 (NodeRegistry)、可靠消息 (Messenger)、集成层 (LobsterNetworkWithRegistry)
+- 新增: SSH通道v2 (SSHChannelV2)、消息协议v2 (MessageProtocolV2)
+- 注意: network/node_registry.py 已弃用，请使用 registry.py
 """
 
 # 框架层 (Framework Layer)
@@ -27,7 +32,28 @@ from .time_arbitrage import (
     ArbitrageOpportunity, ArbitrageResult, ForgettingCurve,
 )
 
-__version__ = "0.3.0"
+# v0.4.0 通信层 (Communication Layer)
+from .registry import (
+    NodeRegistry, RegistrationInfo, NodeStatus,
+    TransportConfig, TransportType,
+)
+from .messenger import (
+    Messenger, ReliableMessage, MessageStatus,
+    NFSTransport, FileTransport,
+)
+from .integration import LobsterNetworkWithRegistry
+
+# v0.4.0 增强模块（可选导入，避免循环依赖）
+try:
+    from .utils.message_protocol_v2 import (
+        Message as MessageV2,
+        MessageProtocol as MessageProtocolV2,
+    )
+    from .network.ssh_channel_v2 import SSHChannel as SSHChannelV2
+except ImportError:
+    pass  # v2 模块为可选增强
+
+__version__ = "0.4.0"
 __all__ = [
     # Core
     "Node", "DialogueEngine", "DialogueResult",
@@ -43,4 +69,10 @@ __all__ = [
     "NetworkConfig", "ConfigManager",
     "LobsterLogger", "get_logger",
     "Message", "MessageProtocol",
+    # v0.4.0 Communication Layer
+    "NodeRegistry", "RegistrationInfo", "NodeStatus",
+    "TransportConfig", "TransportType",
+    "Messenger", "ReliableMessage", "MessageStatus",
+    "NFSTransport", "FileTransport",
+    "LobsterNetworkWithRegistry",
 ]

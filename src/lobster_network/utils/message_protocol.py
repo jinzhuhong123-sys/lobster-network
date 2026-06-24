@@ -1,6 +1,20 @@
 """
-消息协议定义
+消息协议定义 (v1)
+
+.. deprecated:: 0.4.0
+   v1 协议已弃用。推荐升级路径：
+   - 增强功能（去重、TTL、重试）→ utils.message_protocol_v2.MessageProtocolV2
+   - 生产级可靠消息 → messenger.Messenger + messenger.ReliableMessage
+   本文件仅保留用于向后兼容，将在 v0.5.0 中移除。
 """
+
+import warnings as _warnings
+_warnings.warn(
+    "utils.message_protocol (v1) 已弃用 (v0.4.0)，"
+    "请使用 message_protocol_v2 或 messenger.Messenger",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 import json
 from typing import Dict, List, Optional

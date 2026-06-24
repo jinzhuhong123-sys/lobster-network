@@ -1,7 +1,20 @@
 """
 节点注册中心 - 增强版 v2.0
+
+.. deprecated:: 0.4.0
+   此模块已弃用。请使用 lobster_network.registry.NodeRegistry（生产级注册中心），
+   该版本支持传输通道管理、6级节点状态、原子持久化，并被 messenger.py 和 integration.py 使用。
+   本文件仅保留用于向后兼容，将在 v0.5.0 中移除。
+
 实现节点注册、发现、心跳检测、健康检查、状态管理
 """
+
+import warnings as _warnings
+_warnings.warn(
+    "network.node_registry 已弃用 (v0.4.0)，请使用 lobster_network.registry",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 import json
 import os
