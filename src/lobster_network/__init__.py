@@ -4,10 +4,15 @@ Lobster Network - Unified Entry Point
 
 对话即创造：一人一世界的世界观
 
+v0.5.0 变更:
+- 新增: 8维度能力评估引擎 (EightDimEngine)，参考 Clawvard School 评估体系
+- 新增: 维度画像 (DimensionProfile)、Clawvard桥接 (ClawvardBridge)
+- 新增: 评估维度定义、评分器、改进建议生成器
+- 注意: network/node_registry.py 已弃用，请使用 registry.py
+
 v0.4.0 变更:
 - 新增: 节点注册中心 (NodeRegistry)、可靠消息 (Messenger)、集成层 (LobsterNetworkWithRegistry)
 - 新增: SSH通道v2 (SSHChannelV2)、消息协议v2 (MessageProtocolV2)
-- 注意: network/node_registry.py 已弃用，请使用 registry.py
 """
 
 # 框架层 (Framework Layer)
@@ -53,7 +58,18 @@ try:
 except ImportError:
     pass  # v2 模块为可选增强
 
-__version__ = "0.4.0"
+# v0.5.0 8维度评估层 (Assessment Layer) — 可选导入
+try:
+    from .assessment import (
+        EightDimEngine, AssessmentResult,
+        DimensionProfile, Dimension,
+        ClawvardBridge, PracticeSession,
+        DIMENSION_REGISTRY, DIMENSION_DESCRIPTIONS, DIMENSION_WEIGHTS,
+    )
+except ImportError:
+    pass  # assessment 模块为可选增强
+
+__version__ = "0.5.0"
 __all__ = [
     # Core
     "Node", "DialogueEngine", "DialogueResult",
@@ -75,4 +91,9 @@ __all__ = [
     "Messenger", "ReliableMessage", "MessageStatus",
     "NFSTransport", "FileTransport",
     "LobsterNetworkWithRegistry",
+    # v0.5.0 Assessment Layer
+    "EightDimEngine", "AssessmentResult",
+    "DimensionProfile", "Dimension",
+    "ClawvardBridge", "PracticeSession",
+    "DIMENSION_REGISTRY", "DIMENSION_DESCRIPTIONS", "DIMENSION_WEIGHTS",
 ]
