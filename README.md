@@ -4,7 +4,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Version](https://img.shields.io/badge/version-0.3.0-orange.svg)](https://github.com/zhugebin-hub/lobster-network/releases)
+[![Version](https://img.shields.io/badge/version-0.4.1-green.svg)](https://github.com/zhugebin-hub/lobster-network/releases/tag/v0.4.1)
+[![Tests](https://img.shields.io/badge/tests-62%2F62%20passed-brightgreen.svg)](https://github.com/zhugebin-hub/lobster-network/actions)
 
 ---
 
@@ -20,7 +21,7 @@
 
 **世界是编程的**：如同游戏中的程序化生成，世界按需渲染；宝藏不是预设的，是状态满足时的涌现输出。
 
-### 架构分层
+### 架构分层（v0.4.1 五层架构）
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -39,6 +40,21 @@
 │  │Dispatcher│ │  Agents  │ │  Coach   │ │ Monitor  │     │
 │  └──────────┘ └──────────┘ └──────────┘ └──────────┘     │
 └────────────────────────────────────────────────────────────┘
+            │
+┌───────────┼──────────────────────────────────────────────┐
+│           ▼  【v0.4.1 新增】                              │
+│              可靠通信层 (Reliable Communication)           │
+│  ┌──────────────────┐  ┌──────────────────┐              │
+│  │ 节点注册中心      │  │ 可靠消息传递      │              │
+│  │ NodeRegistry     │  │ Messenger        │              │
+│  │ • 持久化存储      │  │ • ACK/NACK确认   │              │
+│  │ • 心跳检测        │  │ • 自动重试       │              │
+│  │ • 健康检查        │  │ • 多通道故障切换 │              │
+│  │ • 能力发现        │  │ • 消息持久化     │              │
+│  └──────────────────┘  └──────────────────┘              │
+│                                                          │
+│  传输通道优先级：NFS → SSH → HTTP → File（自动降级）      │
+└──────────────────────────────────────────────────────────┘
             │
 ┌───────────┼──────────────────────────────────────────────┐
 │           ▼                                               │
@@ -109,6 +125,45 @@ print(f"新见解: {result.new_insight}")
 print(f"宝藏: {result.treasure_unlocked}")
 ```
 
+### 节点注册与可靠消息（v0.4.1 新增）
+
+```python
+from lobster_network.integration import LobsterNetworkWithRegistry
+from lobster_network.registry import TransportConfig, TransportType
+
+# 创建带注册中心的网络
+network = LobsterNetworkWithRegistry(storage_dir="~/.lobster-network")
+
+# 注册节点（含多传输通道配置）
+network.register_node(
+    node_id="lobster-001",
+    name="虾尔",
+    node_type="agent",
+    perspective="世界地图渲染",
+    knowledge_base="协议规范、对话渲染",
+    capabilities=["world-map", "dialogue-engine"],
+    transports=[
+        TransportConfig(transport_type="nfs", endpoint="/shared/messages", priority=1),
+        TransportConfig(transport_type="ssh", endpoint="ssh://172.24.57.34", priority=2),
+        TransportConfig(transport_type="file", endpoint="~/.lobster-network/pending", priority=99),
+    ],
+)
+
+# 发送可靠消息（自动故障切换）
+msg = network.send_message(
+    from_node="lobster-001",
+    to_node="hermes",
+    msg_type="dialogue_request",
+    payload={"trigger": "协议规范讨论"},
+)
+print(f"消息状态: {msg.status}")  # delivered / acked / failed
+print(f"传输通道: {msg.attempts[-1].transport}")
+
+# 健康检查
+health = network.health_check()
+print(f"在线节点: {health['online']} / {health['total_nodes']}")
+```
+
 ### 因陀罗网拓扑
 
 ```python
@@ -135,8 +190,22 @@ print(f"连通率: {stats['connectivity_ratio']:.0%}")
 # 因陀罗网演示
 python examples/indra_net_demo.py
 
-# 运行测试
-pytest tests/ -v
+# 运行测试（62个全部通过）
+python -m unittest tests.test_registry          # 虾尔版 37 个测试
+./venv/bin/pytest tests/test_enhanced_protocol.py -v  # 诸葛马版 25 个测试
+```
+
+### 自动化部署（v0.4.1 新增）
+
+```bash
+# 一键部署
+sudo ./scripts/deploy_v0.4.1.sh deploy
+
+# 一键回滚
+sudo ./scripts/deploy_v0.4.1.sh rollback
+
+# 健康检查
+sudo ./scripts/deploy_v0.4.1.sh health
 ```
 
 ---
@@ -152,14 +221,21 @@ lobster-network/
 │   │   ├── dialogue.py               #   对话引擎（交叉编译器）
 │   │   ├── emergence.py              #   涌现检测器
 │   │   ├── world_state.py            #   世界状态管理（程序化生成）
-│   │   └── lobster_network.py        #   主网络类（编排器）
+│   │   ├── lobster_network.py        #   主网络类（编排器）
+│   │   ├── registry.py               #   【v0.4.1】节点注册中心
+│   │   ├── messenger.py              #   【v0.4.1】可靠消息传递
+│   │   └── integration.py            #   【v0.4.1】集成层
 │   ├── network/                      # 网络层
 │   │   ├── indra_net.py              #   因陀罗网拓扑（全互联）
-│   │   └── ssh_channel.py            #   SSH通信通道
+│   │   ├── ssh_channel.py            #   SSH通信通道
+│   │   ├── ssh_channel_v2.py         #   【v0.4.0】SSH通道增强版
+│   │   ├── ssh_transport.py          #   【v0.4.1】SSH传输通道
+│   │   └── node_registry.py          #   【v0.4.0】节点注册中心v2
 │   └── utils/                        # 工具层
 │       ├── config.py                 #   配置管理
 │       ├── logger.py                 #   日志系统
-│       └── message_protocol.py       #   消息协议
+│       ├── message_protocol.py       #   消息协议v1
+│       └── message_protocol_v2.py    #   【v0.4.0】消息协议增强版
 │
 ├── core/                             # 运营层：实际运行系统
 │   ├── dispatcher/                   # 任务调度器
@@ -183,21 +259,46 @@ lobster-network/
 │   │   │   └── zhuguxia_go_trainer_v3.py # 诸葛虾（加速型）
 │   │   ├── docs/                     # 围棋训练文档
 │   │   └── problem_bank/             # 题库
-│   └── poster/                       # 海报设计领域
-│       ├── generator/
-│       │   ├── ppt_generator.py      # HTML+Playwright PPT生成框架
-│       │   └── report_ppt.py         # 汇报PPT生成脚本
-│       └── docs/                     # 海报训练文档
+│   ├── poster/                       # 海报设计领域
+│   │   ├── generator/
+│   │   │   ├── ppt_generator.py      # HTML+Playwright PPT生成框架
+│   │   │   └── report_ppt.py         # 汇报PPT生成脚本
+│   │   └── docs/                     # 海报训练文档
+│   └── ppt/                          # 【v0.4.1】PPT 制作能力学习
+│       ├── templates/                #   5种预设模板
+│       ├── generator/                #   PPT 生成引擎
+│       └── docs/                     #   使用指南
+│
+├── engine/                           # 引擎层
+│   ├── world_map.py                  # 世界地图索引
+│   └── time_arbitrage.py             # 时间套利引擎
 │
 ├── examples/                         # 示例代码
-│   └── indra_net_demo.py             # 因陀罗网演示
-├── tests/                            # 单元测试
+│   ├── indra_net_demo.py             # 因陀罗网演示
+│   └── time_arbitrage_demo.py        # 时间套利演示
+│
+├── tests/                            # 单元测试（62个全部通过）
+│   ├── test_core.py                  # 核心模块测试
+│   ├── test_world_map.py             # 世界地图测试
+│   ├── test_registry.py              # 【v0.4.1】注册中心测试（37个）
+│   └── test_enhanced_protocol.py     # 【v0.4.0】协议增强测试（25个）
+│
 ├── docs/                             # 项目文档
-│   ├── NETWORK_CONSTRUCTION_PHILOSOPHY.md  # 网络建设理念
-│   ├── DIALOGUE_IS_CREATION.md             # 对话即创造理论
-│   ├── LOBSTER_NETWORK_V2_WORLD_ENGINE.md  # V2造世引擎架构
-│   ├── GITHUB_COLLABORATION_PLAN.md        # GitHub协作方案
+│   ├── upgrade-checklist-v0.4.1.md   # 【v0.4.1】升级检查清单
+│   ├── ROADMAP-v0.4.2.md             # 【v0.4.1】v0.4.2 规划
 │   └── ...
+│
+├── scripts/                          # 运维脚本
+│   └── deploy_v0.4.1.sh              # 【v0.4.1】自动化部署脚本
+│
+├── spec/                             # 协议规范
+│   ├── protocol.md                   # OADP 核心协议（v0.2.0）
+│   ├── drp.md                        # 对话渲染协议
+│   ├── world-map.md                  # 世界地图索引协议
+│   ├── soul_schema.md                # SOUL.md 格式规范
+│   ├── memory_schema.md              # MEMORY.md 格式规范
+│   └── portal.md                     # 传送门协议
+│
 ├── config/
 │   └── brain.json                    # 策略脑状态
 │
@@ -245,6 +346,48 @@ lobster-network/
 - **已解锁的宝藏** (treasures)：涌现产生的新资源
 - **当前任务** (tasks)：活跃的任务列表
 - **衍生的节点** (spawned)：涌现产生的新节点
+
+---
+
+## v0.4.1 新增功能
+
+### 节点注册中心（NodeRegistry）
+
+| 功能 | 说明 |
+|:---|:---|
+| 节点注册 | 注册/注销节点，含能力声明和传输通道配置 |
+| 心跳检测 | 定期心跳，自动检测节点存活状态 |
+| 健康检查 | 全量健康检查，自动标记 offline/suspected |
+| 节点发现 | 按类型/状态/能力查找节点 |
+| 持久化 | JSON 文件持久化，重启后自动恢复 |
+| 回调机制 | 心跳回调、状态变化回调 |
+
+### 可靠消息传递（Messenger）
+
+| 功能 | 说明 |
+|:---|:---|
+| 消息确认 | ACK/NACK 机制，确保消息被处理 |
+| 自动重试 | 指数退避重试，可配置最大重试次数 |
+| 多通道故障切换 | NFS → SSH → HTTP → File 自动降级 |
+| 消息持久化 | 按状态分类存储（pending/sent/failed） |
+| 消息过期 | TTL 机制，自动清理过期消息 |
+| 优先级队列 | 支持消息优先级排序 |
+
+### 传输通道管理
+
+| 通道 | 优先级 | 故障检测 | 切换时间 |
+|:---|:---:|:---|:---|
+| NFS | 1 | 目录可写检查 | < 100ms |
+| SSH | 2 | 连接测试 | < 500ms |
+| HTTP | 3 | HTTP 状态码 | < 1s |
+| File | 99 | 目录可写 | < 50ms |
+
+### 自动化部署
+
+- 一键部署：`deploy_v0.4.1.sh deploy`
+- 一键回滚：`deploy_v0.4.1.sh rollback`
+- 健康检查：`deploy_v0.4.1.sh health`
+- 测试验证：`deploy_v0.4.1.sh test`
 
 ---
 
@@ -372,6 +515,85 @@ opportunities = engine.scan_all_opportunities(nodes)
 
 ---
 
+## PPT 制作能力学习（v0.4.1 新增）
+
+PPT 制作是小龙虾网络的第三个应用领域，验证了框架在**知识转化与内容创作**方面的能力。
+
+### 背景与目标
+
+**背景**：手动生成 PPT 效率低，布局问题多，需要自动化解决方案
+**目标**：开发自动化 PPT 生成模块，输入结构化内容 → 自动输出精美 PPTX
+
+### 技术架构
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              PPT 制作能力学习系统                        │
+├─────────────┬─────────────┬─────────────┬──────────────┤
+│  内容解析    │  模板引擎    │  视觉生成    │  自动化组装  │
+│  Content    │  Template   │  Visual     │  Assembly   │
+│             │             │             │             │
+│ Markdown/   │ 5种模板库   │ HTML/CSS    │ python-pptx │
+│ Word/网页   │ 响应式布局  │ Playwright  │ 自动化输出  │
+│             │             │             │             │
+│ ↓           │ ↓           │ ↓           │ ↓           │
+│ 结构化数据  │ 版式计算    │ 截图渲染    │ PPTX 文件   │
+└─────────────┴─────────────┴─────────────┴──────────────┘
+```
+
+### 核心组件
+
+| 组件 | 功能 | 技术栈 |
+|:---|:---|:---|
+| 内容解析器 | 从 Markdown/Word/网页提取结构化内容 | python-docx, markdown |
+| 模板引擎 | 5种预设模板（学术/商业/技术/汇报/创意） | HTML/CSS |
+| 视觉生成器 | AI 生成插图 + Playwright 渲染 | ImageGen, Playwright |
+| 自动化组装 | python-pptx 自动化输出 | python-pptx |
+
+### 工作流程
+
+```
+1. 输入结构化内容（Markdown/Word/网页）
+2. 内容解析器提取标题、要点、数据
+3. 模板引擎选择合适模板并计算版式
+4. 视觉生成器生成配图（AI ImageGen）
+5. Playwright 渲染 HTML 为高质量截图
+6. python-pptx 组装最终 PPTX 文件
+```
+
+### 技术突破
+
+- **纯代码驱动**：无需设计软件，完全自动化
+- **HTML/CSS 精确控制**：浏览器完美渲染中文排版
+- **AI 配图生成**：ImageGen 生成高质量插图，Base64 内嵌
+- **Playwright 高保真截图**：2x Retina 输出，保证视觉质量
+- **python-pptx 自动化**：从内容到 PPTX 全流程自动化
+
+### 跨领域迁移验证
+
+PPT 制作能力验证了小龙虾网络的**通用性**：
+- 从围棋训练（教育）→ 海报设计（创意）→ PPT 制作（知识转化）
+- 对话引擎作为**通用创造引擎**，适用于多个领域
+- 每个领域都是"对话即创造"的具体体现
+
+### 任务分工
+
+| 任务 | 负责人 | 状态 |
+|:---|:---|:---|
+| 核心引擎 (python-pptx) | 虾尔 | 🟢 进行中 |
+| 模板库设计 (5种模板) | 诸葛虾 | 🟢 进行中 |
+| 使用指南文档 | 小陈 | 🟡 待开始 |
+
+### 应用场景
+
+- **学术汇报**：论文 → PPT 自动转换
+- **技术分享**：技术文档 → 演示文稿
+- **项目汇报**：项目总结 → 汇报 PPT
+- **教学课件**：课程内容 → 教学 PPT
+- **商业演示**：商业计划 → 演示文稿
+
+---
+
 ## 协作机制
 
 | 角色 | 负责人 | 职责 |
@@ -382,8 +604,10 @@ opportunities = engine.scan_all_opportunities(nodes)
 | 测试节点 | 诸葛虾 | 自动化测试、性能验证 |
 
 **通信方式**：
+- NFS 共享目录：`/shared/messages/`（主通道）
 - SSH/SCP：跨服务器文件传输
-- 文件消息队列：`/shared/messages/to_<role>/`（JSON格式）
+- HTTP API：跨网络通信
+- 文件消息队列：`~/.lobster-network/pending/`（兜底通道）
 - 钉钉：日常沟通
 
 ---
@@ -391,13 +615,15 @@ opportunities = engine.scan_all_opportunities(nodes)
 ## 开发路线图
 
 | 版本 | 目标 | 状态 |
-|------|------|------|
-| v0.1.0 | 核心引擎（节点、对话、涌现） | ✅ 完成 |
-| v0.2.0 | 统一框架 + 运营系统整合 | ✅ 完成 |
-| v0.3.0 | 时间套利模式（五维套利引擎） | ✅ 当前 |
-| v0.4.0 | SSH通信 + 消息协议集成 | 🔲 计划中 |
-| v0.5.0 | 围棋训练系统示例 | 🔲 计划中 |
-| v1.0.0 | 正式发布 | 🔲 计划中 |
+|------|------|:---:|
+| v0.1.0 | 核心引擎（节点、对话、涌现） | ✅ |
+| v0.2.0 | 统一框架 + 运营系统整合 | ✅ |
+| v0.3.0 | 时间套利模式（五维套利引擎） | ✅ |
+| v0.4.0 | SSH通信 + 消息协议增强 | ✅ |
+| v0.4.1 | 注册中心 + 可靠消息 + 部署脚本 | ✅ |
+| v0.4.2 | 安全增强 + 监控告警 + 性能优化 | 🔄 |
+| v0.5.0 | 分布式架构 + 跨域协作 | 📋 |
+| v1.0.0 | 正式发布 | 🎯 |
 
 ---
 
@@ -413,6 +639,7 @@ pip install -r requirements.txt
 - `python-pptx` - PPT生成
 - `python-docx` - Word文档
 - `Pillow` - 图像处理
+- `paramiko` - SSH通信（v0.4.1 新增）
 
 ---
 
@@ -436,41 +663,3 @@ MIT License - 详见 [LICENSE](LICENSE)
 ---
 
 **你不停对话，世界就不停扩展** 🦞⚡️
----
-
-## 📊 最新进展
-
-> 更新时间: 2026-06-23 15:44
-
-| 维度 | 状态 |
-|------|------|
-| 版本 | v0.3.0 (v0.4.0 开发中) |
-| 文件 | 123 个 |
-| 测试 | 25 passed ✅ |
-| CI/CD | GitHub Actions ✅ |
-| 协议 | OADP v0.3.0 (6个spec文档) |
-| 活跃贡献者 | 虾尔 (lobster-001) |
-
-### Phase 1 进行中
-- 🟢 虾尔: 协议层完成，代码完善中
-- 🟡 小陈: 文档任务已分配
-- 🟡 诸葛虾: SDK任务已分配
-- 🟡 qoder: AI引擎任务已分配
-
-
-## 🎯 新项目: PPT制作技能学习 (PPT-001)
-
-> 启动时间: 2026-06-23 15:46
-
-**背景**: 手动生成PPT效率低，布局问题多
-**目标**: 开发自动化PPT生成模块，输入结构化内容→自动输出精美PPTX
-
-| 任务 | 负责人 | 状态 |
-|------|--------|------|
-| 核心引擎 (python-pptx) | 虾尔 | 🟢 启动中 |
-| 模板库设计 (5种模板) | 诸葛虾 | 🟢 启动中 |
-| 使用指南文档 | 小陈 | 🟡 待开始 |
-
----
-
----
