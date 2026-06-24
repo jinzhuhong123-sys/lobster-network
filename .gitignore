@@ -1,55 +1,9 @@
-# Python
+node_modules/
+package-lock.json
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Virtual environments
-.env
-.venv
-env/
-venv/
-ENV/
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-
-# Testing
+*.pyc
 .pytest_cache/
-.coverage
-htmlcov/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Project specific
-config/*.json
-!config/.gitkeep
-shared/
-logs/
-
-# Sensitive data
-*.pem
-*.key
-id_rsa*
+*.egg-info/
+dist/
+build/
+.env
