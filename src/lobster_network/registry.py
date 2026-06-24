@@ -1,15 +1,26 @@
 """
-节点注册中心
-提供节点注册、发现、心跳、健康检查、持久化存储
+节点注册中心 - 统一版 v0.4.1
+融合虾尔版（持久化+健康检查+传输通道管理）和诸葛马版（host/port+清理线程+事件回调）
+
+功能：
+1. 节点注册与注销
+2. 心跳检测与健康检查
+3. 节点发现与查询
+4. 传输通道管理与故障切换
+5. 持久化存储
+6. 定期清理线程
+7. 事件回调机制
 """
 
 import json
 import os
+import time
 import uuid
 import threading
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Callable
 from datetime import datetime, timedelta
 from dataclasses import dataclass, field, asdict
+from pathlib import Path
 
 from src.lobster_network.utils.logger import get_logger
 
@@ -22,7 +33,9 @@ class NodeStatus:
     IDLE = "idle"            # 空闲（在线但无任务）
     BUSY = "busy"            # 忙碌
     DEGRADED = "degraded"    # 降级（部分功能不可用）
+    INACTIVE = "inactive"    # 离线（心跳超时）
     OFFLINE = "offline"      # 离线
+    DEAD = "dead"            # 死亡（长时间无心跳）
     SUSPECTED = "suspected"  # 疑似离线（心跳超时但未确认）
 
 
@@ -58,10 +71,10 @@ def _parse_time(s: str) -> datetime:
 
 @dataclass
 class RegistrationInfo:
-    """注册信息"""
+    """注册信息（融合版）"""
     node_id: str
     name: str
-    node_type: str
+    node_type: str  # agent|coach|student|service
     registered_at: str
     last_heartbeat: str
     status: str = NodeStatus.ACTIVE
@@ -70,12 +83,17 @@ class RegistrationInfo:
     metadata: Dict = field(default_factory=dict)
     version: str = "1.0.0"
     ttl_seconds: int = 300  # 默认5分钟心跳超时
+    # 诸葛马版独有
+    host: str = ""
+    port: int = 0
     
     def to_dict(self) -> dict:
         return {
             "node_id": self.node_id,
             "name": self.name,
             "node_type": self.node_type,
+            "host": self.host,
+            "port": self.port,
             "registered_at": self.registered_at,
             "last_heartbeat": self.last_heartbeat,
             "status": self.status,
@@ -93,6 +111,8 @@ class RegistrationInfo:
             node_id=data["node_id"],
             name=data["name"],
             node_type=data.get("node_type", "agent"),
+            host=data.get("host", ""),
+            port=data.get("port", 0),
             registered_at=data.get("registered_at", datetime.now().isoformat()),
             last_heartbeat=data.get("last_heartbeat", datetime.now().isoformat()),
             status=data.get("status", NodeStatus.ACTIVE),
@@ -112,36 +132,54 @@ class RegistrationInfo:
             return False
 
 
+# 向后兼容别名
+NodeRegistration = RegistrationInfo
+
 class NodeRegistry:
     """
-    节点注册中心
+    节点注册中心（融合版 v0.4.1）
     
-    功能：
-    1. 节点注册与注销
-    2. 心跳检测与健康检查
-    3. 节点发现与查询
-    4. 传输通道管理与故障切换
-    5. 持久化存储
+    融合虾尔版和诸葛马版的优势：
+    - 虾尔版：持久化 + 健康检查 + 传输通道管理 + 故障切换
+    - 诸葛马版：host/port + 定期清理线程 + 事件回调（on/register/deregister/heartbeat/status_change）
     """
     
-    def __init__(self, storage_path: Optional[str] = None):
+    def __init__(
+        self,
+        storage_path: Optional[str] = None,
+        storage_dir: Optional[str] = None,  # 诸葛马版兼容
+        heartbeat_timeout: int = 300,
+        cleanup_interval: int = 60,
+    ):
         """
         初始化注册中心
         
         Args:
-            storage_path: 持久化存储路径，None 则仅内存模式
+            storage_path: 持久化存储路径（虾尔版），None 则仅内存模式
+            storage_dir: 持久化目录（诸葛马版兼容）
+            heartbeat_timeout: 心跳超时时间（秒）（诸葛马版）
+            cleanup_interval: 清理间隔（秒）（诸葛马版）
         """
         self.nodes: Dict[str, RegistrationInfo] = {}
-        self.storage_path = storage_path
+        # 兼容两种参数名
+        self.storage_path = storage_path or (str(storage_dir) if storage_dir else None)
+        self.heartbeat_timeout = heartbeat_timeout
+        self.cleanup_interval = cleanup_interval
         self._lock = threading.RLock()
-        self._heartbeat_callbacks: List = []
-        self._status_change_callbacks: List = []
+        self._callbacks: Dict[str, List[Callable]] = {
+            "register": [],
+            "deregister": [],
+            "heartbeat": [],
+            "status_change": [],
+        }
+        self._running = False
+        self._cleanup_thread: Optional[threading.Thread] = None
         
         # 从持久化存储加载
         if storage_path and os.path.exists(storage_path):
             self._load()
         
-        logger.info(f"NodeRegistry initialized (storage={storage_path or 'memory-only'})")
+        logger.info(f"NodeRegistry initialized (storage={storage_path or 'memory-only'}, timeout={heartbeat_timeout}s)")
     
     # ==================== 注册与注销 ====================
     
@@ -150,6 +188,8 @@ class NodeRegistry:
         node_id: str,
         name: str,
         node_type: str = "agent",
+        host: str = "",
+        port: int = 0,
         capabilities: Optional[List[str]] = None,
         transports: Optional[List[TransportConfig]] = None,
         metadata: Optional[Dict] = None,
@@ -162,8 +202,10 @@ class NodeRegistry:
             node_id: 节点唯一标识
             name: 节点名称
             node_type: 节点类型
+            host: 主机地址（诸葛马版）
+            port: 端口（诸葛马版）
             capabilities: 能力列表
-            transports: 传输通道配置
+            transports: 传输通道配置（虾尔版）
             metadata: 元数据
             ttl_seconds: 心跳超时时间（秒）
         
@@ -173,25 +215,46 @@ class NodeRegistry:
         with self._lock:
             now = datetime.now().isoformat()
             
-            info = RegistrationInfo(
-                node_id=node_id,
-                name=name,
-                node_type=node_type,
-                registered_at=now,
-                last_heartbeat=now,
-                capabilities=capabilities or [],
-                transports=transports or [],
-                metadata=metadata or {},
-                ttl_seconds=ttl_seconds,
-            )
-            
             was_existing = node_id in self.nodes
-            self.nodes[node_id] = info
+            node = self.nodes.get(node_id)
+            
+            if node:
+                # 更新现有注册
+                node.name = name
+                node.node_type = node_type
+                node.host = host or node.host
+                node.port = port or node.port
+                node.capabilities = capabilities or node.capabilities
+                node.transports = transports or node.transports
+                node.metadata.update(metadata or {})
+                node.last_heartbeat = now
+                node.status = NodeStatus.ACTIVE
+                node.ttl_seconds = ttl_seconds
+            else:
+                # 新注册
+                node = RegistrationInfo(
+                    node_id=node_id,
+                    name=name,
+                    node_type=node_type,
+                    host=host,
+                    port=port,
+                    registered_at=now,
+                    last_heartbeat=now,
+                    capabilities=capabilities or [],
+                    transports=transports or [],
+                    metadata=metadata or {},
+                    ttl_seconds=ttl_seconds,
+                )
+                self.nodes[node_id] = node
             
             self._save()
+            
+            # 触发回调
+            self._trigger_callback("register", node)
+            
             logger.info(f"Node registered: {node_id} ({name}) {'[updated]' if was_existing else '[new]'}")
             
-            return info
+            return node
     
     def unregister(self, node_id: str) -> bool:
         """
@@ -205,21 +268,24 @@ class NodeRegistry:
         """
         with self._lock:
             if node_id in self.nodes:
+                node = self.nodes[node_id]
                 del self.nodes[node_id]
                 self._save()
+                self._trigger_callback("deregister", node)
                 logger.info(f"Node unregistered: {node_id}")
                 return True
             return False
     
     # ==================== 心跳 ====================
     
-    def heartbeat(self, node_id: str, status: Optional[str] = None) -> bool:
+    def heartbeat(self, node_id: str, status: Optional[str] = None, metadata: Optional[Dict] = None) -> bool:
         """
         节点心跳
         
         Args:
             node_id: 节点ID
             status: 可选的状态更新
+            metadata: 额外元数据（诸葛马版）
         
         Returns:
             bool: 是否成功
@@ -235,33 +301,49 @@ class NodeRegistry:
             
             if status:
                 node.status = status
+            else:
+                node.status = NodeStatus.ACTIVE
+            
+            if metadata:
+                node.metadata.update(metadata)
             
             self._save()
             
             # 触发心跳回调
-            for cb in self._heartbeat_callbacks:
-                try:
-                    cb(node_id, node)
-                except Exception as e:
-                    logger.error(f"Heartbeat callback error: {e}")
+            self._trigger_callback("heartbeat", node)
             
             # 状态变化回调
-            if status and status != old_status:
-                for cb in self._status_change_callbacks:
-                    try:
-                        cb(node_id, old_status, status)
-                    except Exception as e:
-                        logger.error(f"Status change callback error: {e}")
+            if node.status != old_status:
+                self._trigger_callback("status_change", node)
             
             return True
     
-    def on_heartbeat(self, callback) -> None:
-        """注册心跳回调"""
-        self._heartbeat_callbacks.append(callback)
+    def on(self, event: str, callback: Callable) -> None:
+        """
+        注册事件回调（诸葛马版）
+        
+        Args:
+            event: 事件类型 (register|deregister|heartbeat|status_change)
+            callback: 回调函数
+        """
+        if event in self._callbacks:
+            self._callbacks[event].append(callback)
     
-    def on_status_change(self, callback) -> None:
-        """注册状态变化回调"""
-        self._status_change_callbacks.append(callback)
+    def on_status_change(self, callback: Callable) -> None:
+        """注册状态变化回调（虾尔版兼容）"""
+        self.on("status_change", callback)
+    
+    def on_heartbeat(self, callback: Callable) -> None:
+        """注册心跳回调（虾尔版兼容）"""
+        self.on("heartbeat", callback)
+    
+    def _trigger_callback(self, event: str, node: RegistrationInfo) -> None:
+        """触发回调"""
+        for callback in self._callbacks.get(event, []):
+            try:
+                callback(node)
+            except Exception as e:
+                logger.error(f"回调执行失败 ({event}): {e}")
     
     # ==================== 节点发现 ====================
     
@@ -276,6 +358,16 @@ class NodeRegistry:
         if not node:
             return False
         return node.is_alive()
+    
+    def get_active_nodes(self) -> List[RegistrationInfo]:
+        """获取所有活跃节点（诸葛马版）"""
+        with self._lock:
+            return [n for n in self.nodes.values() if n.status == NodeStatus.ACTIVE]
+    
+    def get_inactive_nodes(self) -> List[RegistrationInfo]:
+        """获取离线节点（诸葛马版）"""
+        with self._lock:
+            return [n for n in self.nodes.values() if n.status not in (NodeStatus.ACTIVE, NodeStatus.BUSY, NodeStatus.IDLE)]
     
     def list_nodes(
         self,
@@ -306,6 +398,10 @@ class NodeRegistry:
             
             return result
     
+    def get_nodes_by_type(self, node_type: str) -> List[RegistrationInfo]:
+        """按类型获取节点（诸葛马版）"""
+        return self.list_nodes(node_type=node_type)
+    
     def find_by_capability(self, capability: str) -> List[RegistrationInfo]:
         """
         按能力查找节点
@@ -321,6 +417,10 @@ class NodeRegistry:
                 n for n in self.nodes.values()
                 if capability in n.capabilities and n.is_alive()
             ]
+    
+    def get_nodes_by_capability(self, capability: str) -> List[RegistrationInfo]:
+        """按能力获取节点（诸葛马版别名）"""
+        return self.find_by_capability(capability)
     
     def get_active_transports(self, node_id: str) -> List[TransportConfig]:
         """
@@ -387,7 +487,7 @@ class NodeRegistry:
     
     def check_health(self) -> Dict:
         """
-        全量健康检查
+        全量健康检查（融合版）
         
         Returns:
             Dict: 健康状态报告
@@ -400,6 +500,7 @@ class NodeRegistry:
                 "online": 0,
                 "offline": 0,
                 "suspected": 0,
+                "dead": 0,
                 "nodes": {},
             }
             
@@ -418,28 +519,77 @@ class NodeRegistry:
                         report["active"] += 1
                 else:
                     # 心跳超时
-                    if node.status not in (NodeStatus.OFFLINE, NodeStatus.SUSPECTED):
-                        node.status = NodeStatus.SUSPECTED
-                        logger.warning(f"Node {node_id} suspected offline (heartbeat timeout)")
-                    report["suspected"] += 1
+                    try:
+                        last = _parse_time(node.last_heartbeat)
+                        elapsed = (now - last).total_seconds()
+                        
+                        if elapsed > self.heartbeat_timeout * 3:
+                            if node.status != NodeStatus.DEAD:
+                                node.status = NodeStatus.DEAD
+                                report["dead"] += 1
+                                self._trigger_callback("status_change", node)
+                                logger.warning(f"Node {node_id} marked dead")
+                        elif elapsed > self.heartbeat_timeout * 2:
+                            if node.status not in (NodeStatus.OFFLINE, NodeStatus.DEAD):
+                                node.status = NodeStatus.OFFLINE
+                                report["offline"] += 1
+                                self._trigger_callback("status_change", node)
+                                logger.warning(f"Node {node_id} marked offline")
+                        else:
+                            if node.status not in (NodeStatus.OFFLINE, NodeStatus.DEAD, NodeStatus.SUSPECTED):
+                                node.status = NodeStatus.SUSPECTED
+                                report["suspected"] += 1
+                                self._trigger_callback("status_change", node)
+                                logger.warning(f"Node {node_id} suspected offline (heartbeat timeout)")
+                    except (ValueError, TypeError):
+                        pass
                 
                 report["nodes"][node_id] = node_health
             
-            # 标记长时间未心跳的节点为 offline
-            for node_id, node in self.nodes.items():
-                try:
-                    last = _parse_time(node.last_heartbeat)
-                    if (now - last).total_seconds() > node.ttl_seconds * 3:
-                        if node.status != NodeStatus.OFFLINE:
-                            node.status = NodeStatus.OFFLINE
-                            report["offline"] += 1
-                            report["suspected"] -= 1
-                            logger.warning(f"Node {node_id} marked offline")
-                except (ValueError, TypeError):
-                    pass
-            
             self._save()
             return report
+    
+    def get_registry_status(self) -> Dict:
+        """获取注册中心状态（诸葛马版）"""
+        with self._lock:
+            active = len([n for n in self.nodes.values() if n.status == NodeStatus.ACTIVE])
+            inactive = len([n for n in self.nodes.values() if n.status in (NodeStatus.INACTIVE, NodeStatus.OFFLINE, NodeStatus.SUSPECTED)])
+            dead = len([n for n in self.nodes.values() if n.status == NodeStatus.DEAD])
+            
+            return {
+                "total_nodes": len(self.nodes),
+                "active_nodes": active,
+                "inactive_nodes": inactive,
+                "dead_nodes": dead,
+                "heartbeat_timeout": self.heartbeat_timeout,
+                "nodes": {nid: n.to_dict() for nid, n in self.nodes.items()},
+            }
+    
+    # ==================== 定期清理线程（诸葛马版） ====================
+    
+    def start_cleanup(self) -> None:
+        """启动定期清理线程"""
+        self._running = True
+        self._cleanup_thread = threading.Thread(target=self._cleanup_loop, daemon=True)
+        self._cleanup_thread.start()
+        logger.info(f"Cleanup thread started (interval={self.cleanup_interval}s)")
+    
+    def stop_cleanup(self) -> None:
+        """停止定期清理线程"""
+        self._running = False
+        if self._cleanup_thread:
+            self._cleanup_thread.join(timeout=5)
+        logger.info("Cleanup thread stopped")
+    
+    def _cleanup_loop(self) -> None:
+        """清理循环"""
+        while self._running:
+            try:
+                self.check_health()
+                self._save()
+            except Exception as e:
+                logger.error(f"清理循环异常: {e}")
+            time.sleep(self.cleanup_interval)
     
     # ==================== 持久化 ====================
     

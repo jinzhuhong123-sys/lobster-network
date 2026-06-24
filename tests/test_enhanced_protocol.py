@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from src.lobster_network.utils.message_protocol_v2 import Message, MessageProtocol
-from src.lobster_network.network.node_registry import NodeRegistry, NodeRegistration
+from src.lobster_network.registry import NodeRegistry, RegistrationInfo as NodeRegistration
 
 
 class TestMessageV2:

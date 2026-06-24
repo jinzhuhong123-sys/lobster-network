@@ -4,9 +4,15 @@ SSH 传输通道（集成诸葛马版 ssh_channel_v2）
 
 import os
 import time
-import paramiko
 from typing import Tuple, Optional
 from dataclasses import dataclass
+
+try:
+    import paramiko
+    HAS_PARAMIKO = True
+except ImportError:
+    HAS_PARAMIKO = False
+    paramiko = None
 
 from src.lobster_network.messenger import Transport, ReliableMessage
 from src.lobster_network.registry import TransportConfig
@@ -19,8 +25,8 @@ logger = get_logger(__name__)
 class SSHConfig:
     """SSH 连接配置"""
     hostname: str
-    port: int = 22
     username: str
+    port: int = 22
     password: Optional[str] = None
     key_filename: Optional[str] = None
     timeout: int = 10
@@ -34,8 +40,11 @@ class SSHTransport(Transport):
         self.ssh_config = ssh_config
         self._client = None
     
-    def _connect(self) -> paramiko.SSHClient:
+    def _connect(self):
         """建立 SSH 连接"""
+        if not HAS_PARAMIKO:
+            raise ImportError("paramiko 未安装，无法使用 SSH 传输通道")
+        
         if self._client and self._client.get_transport() and self._client.get_transport().is_active():
             return self._client
         
