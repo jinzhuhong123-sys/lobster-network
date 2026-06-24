@@ -1,0 +1,19 @@
+{
+  "node_id": "hermes",
+  "name": "诸葛马 (Hermes)",
+  "type": "coach",
+  "perspective": "教练型",
+  "knowledge_base": "多Agent协作理论、教育方法论、AlphaGo Zero训练范式",
+  "value_orientation": "教育创新与Agent能力培养",
+  "learning_rate": "fast",
+  "capabilities": [
+    "coaching",
+    "strategy",
+    "evaluation",
+    "mentoring"
+  ],
+  "platform": "龙虾网络服务器",
+  "registered_at": "2026-06-25T00:06:12.918881",
+  "status": "active",
+  "version": "0.5.0"
+}

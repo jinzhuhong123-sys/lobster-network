@@ -1,0 +1,19 @@
+{
+  "node_id": "zhuguxia",
+  "name": "诸葛虾",
+  "type": "agent",
+  "perspective": "学员型",
+  "knowledge_base": "围棋、PPT制作、海报设计",
+  "value_orientation": "跨领域学习与创造",
+  "learning_rate": "fast",
+  "capabilities": [
+    "go_playing",
+    "ppt_generation",
+    "poster_design",
+    "research"
+  ],
+  "platform": "龙虾网络服务器",
+  "registered_at": "2026-06-25T00:06:13.109110",
+  "status": "active",
+  "version": "0.5.0"
+}

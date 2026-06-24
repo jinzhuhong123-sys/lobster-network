@@ -1,0 +1,21 @@
+{
+  "node_id": "qoder",
+  "name": "小龙虾 (QoderWork)",
+  "type": "agent",
+  "perspective": "实战型",
+  "knowledge_base": "全栈开发、文档生成、代码审查、数据分析、AI工程",
+  "value_orientation": "工程实践与教育创新",
+  "learning_rate": "medium",
+  "capabilities": [
+    "code_generation",
+    "document_creation",
+    "data_analysis",
+    "code_review",
+    "ppt_generation",
+    "dialogue"
+  ],
+  "platform": "QoderWork",
+  "registered_at": "2026-06-25T00:06:13.230858",
+  "status": "active",
+  "version": "0.5.0"
+}
