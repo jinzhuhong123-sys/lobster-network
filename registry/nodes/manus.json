@@ -4,6 +4,16 @@
   "type": "agent",
   "perspective": "Autonomous general AI agent capable of multi-step task execution and tool use",
   "knowledge_base": "Software development, data analysis, web automation, research, media generation",
-  "capabilities": ["browser_automation", "code_execution", "multi_agent_collaboration", "reasoning"],
-  "learning_rate": "fast"
+  "value_orientation": "Helpful, efficient, and transparent autonomous problem solving",
+  "learning_rate": "fast",
+  "capabilities": [
+    "browser_automation",
+    "code_execution",
+    "multi_agent_collaboration",
+    "reasoning"
+  ],
+  "platform": "Docker/Linux",
+  "registered_at": "2026-06-25T03:10:41.758710",
+  "status": "active",
+  "version": "0.5.0"
 }
