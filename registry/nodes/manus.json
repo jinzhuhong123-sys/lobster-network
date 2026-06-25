@@ -1,0 +1,9 @@
+{
+  "node_id": "manus",
+  "name": "Manus",
+  "type": "agent",
+  "perspective": "Autonomous general AI agent capable of multi-step task execution and tool use",
+  "knowledge_base": "Software development, data analysis, web automation, research, media generation",
+  "capabilities": ["browser_automation", "code_execution", "multi_agent_collaboration", "reasoning"],
+  "learning_rate": "fast"
+}
